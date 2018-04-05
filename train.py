@@ -13,7 +13,8 @@ aparse.add_argument('--input', default=sys.stdin,
                          "--input-dir are ommitted, read from stdin.")
 aparse.add_argument('--input-dir', default=None,
                     help="Path to the input directory with .txt files.")
-aparse.add_argument('--model', dest='ofs', type=argparse.FileType('w'),
+aparse.add_argument('--model', dest='ofs',
+                    type=argparse.FileType('w', encoding='utf8'),
                     default=sys.stdout,
                     help="Path to the output model file. "
                          "Print to stdout by default")
@@ -21,6 +22,7 @@ aparse.add_argument('--lc', action="store_true",
                     help="Convert input texts to lower case")
 aparse.add_argument('--help', action="help",
                     help="Display this help message and exit")
+
 args = aparse.parse_args()
 
 if args.ctx < 1:
@@ -40,3 +42,4 @@ else:
 
 # mm.finalize()
 mm.dump(args.ofs)
+args.ofs.close()

@@ -96,8 +96,6 @@ class Model:
     def generate(self, ofs, length, start_ctx=None, reseed_random=True):
         if not start_ctx:
             start_ctx = self.chains.random_ctx(self.ctxLength)
-        else:
-            start_ctx = start_ctx.split()
         ctx = start_ctx
         for word in ctx:
             ofs.write("{} ".format(word))
