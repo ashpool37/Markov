@@ -10,10 +10,10 @@ class Model:
             return defaultdict(Model.Tree._factory)
 
         def __init__(self):
-            self._tree = Model.Tree._factory()
+            self.tree = Model.Tree._factory()
 
         def inc_ctx(self, context):
-            subtree = self._tree
+            subtree = self.tree
             for node in context[:-1]:
                 subtree = subtree[node]
             fkey = context[-1]
@@ -24,7 +24,7 @@ class Model:
 
         def traverse(self, depth, tree=None):
             if not tree:
-                tree = self._tree
+                tree = self.tree
             if depth > 0:
                 for key, subtree in tree.items():
                     self.traverse(depth - 1, subtree)
@@ -34,7 +34,7 @@ class Model:
             for key, leaf in tree.items():
                 leafsum += leaf
             for key in tree.keys():
-                tree[key] = "%.4f" % (tree[key] / leafsum)
+                tree[key] = round(tree[key] / leafsum, 5)
 
     def __init__(self, ctx_length, lower=True):
         self.chains = Model.Tree()
@@ -59,4 +59,6 @@ class Model:
         self.chains.traverse(self.ctxLength)
 
     def dump(self, ofs):
-        json.dump(self.chains._tree, ofs)
+        model_dump = {'ctx': self.ctxLength,
+                      'tree': self.chains.tree}
+        json.dump(model_dump, ofs)
