@@ -1,13 +1,35 @@
 import argparse
+import sys
 from Markov import Model
 
-argParser = argparse.ArgumentParser(
-    description="Train a Markov model based on text files.")
+aparse = argparse.ArgumentParser(
+    description="Train a Markov model based on text files.",
+    add_help=False)
+aparse.add_argument('--ctx', type=int, default=1,
+                    help="Length of context (number of words). 1 by default")
+aparse.add_argument('--input-dir', default=None,
+                    help="Path to the input directory with .txt files. "
+                         "Read from stdin by default.")
+aparse.add_argument('--model', dest='ofs', type=argparse.FileType('w'),
+                    default=sys.stdout,
+                    help="Path to the output model file. "
+                         "Print to stdout by default")
+aparse.add_argument('--lc', action="store_true",
+                    help="Convert input texts to lower case")
+aparse.add_argument('--help', action="help",
+                    help="Display this help message and exit")
+args = aparse.parse_args()
 
-mm = Model(ctx_length=2)
-arg_ifs = open("sonnets.txt", 'r')
-arg_ofs = open("model.json", 'w')
-mm.train(arg_ifs)
+mm = Model(ctx_length=args.ctx, lower=args.lc)
+if args.input_dir is None:
+    mm.train(sys.stdin)
+else:
+    import os
+    for file in os.listdir(args.input_dir):
+        if file.endswith(".txt"):
+            fpath = os.path.join(args.input_dir, file)
+            with open(fpath, 'r') as ifs:
+                mm.train(ifs)
+
 mm.finalize()
-mm.dump(arg_ofs)
-pass
+mm.dump(args.ofs)

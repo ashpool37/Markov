@@ -36,13 +36,16 @@ class Model:
             for key in tree.keys():
                 tree[key] = "%.4f" % (tree[key] / leafsum)
 
-    def __init__(self, ctx_length):
+    def __init__(self, ctx_length, lower=True):
         self.chains = Model.Tree()
         self.ctxLength = ctx_length
+        self.lower = lower
 
     def train(self, ifs):
         context = []
         for line in ifs:
+            if self.lower:
+                line = line.lower()
             words = line.strip().split()
             words = [w.strip(string.punctuation) for w in words]
             for word in words:
