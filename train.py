@@ -23,7 +23,11 @@ aparse.add_argument('--help', action="help",
                     help="Display this help message and exit")
 args = aparse.parse_args()
 
-mm = Model(ctx_length=args.ctx, lower=args.lc)
+if args.ctx < 1:
+    print("Please specify a positive --ctx.")
+    exit(1)
+
+mm = Model.empty(ctx_length=args.ctx, lower=args.lc)
 if args.input_dir is not None:
     import os
     for file in os.listdir(args.input_dir):
@@ -34,5 +38,5 @@ if args.input_dir is not None:
 else:
     mm.train(args.input)
 
-mm.finalize()
+# mm.finalize()
 mm.dump(args.ofs)
