@@ -56,7 +56,7 @@ class Model:
 
     def __init__(self, ctx_length, lower=True):
         self.chains = Model.Tree()
-        self.ctxLength = ctx_length
+        self.ctx_length = ctx_length
         self.lower = lower
 
     @classmethod
@@ -80,7 +80,7 @@ class Model:
             words = [w.strip(string.punctuation) for w in words]
             for word in words:
                 context.append(word)
-                if len(context) < self.ctxLength + 1:
+                if len(context) < self.ctx_length + 1:
                     continue
                 self.chains.inc_ctx(context)
                 del context[0]
@@ -89,13 +89,13 @@ class Model:
     #     self.chains.traverse(self.ctxLength)
 
     def dump(self, ofs):
-        model_dump = {'context': self.ctxLength,
+        model_dump = {'context': self.ctx_length,
                       'tree': self.chains.tree}
         json.dump(model_dump, ofs)
 
     def generate(self, ofs, length, start_ctx=None, reseed_random=True):
         if not start_ctx:
-            start_ctx = self.chains.random_ctx(self.ctxLength)
+            start_ctx = self.chains.random_ctx(self.ctx_length)
         ctx = start_ctx
         for word in ctx:
             ofs.write("{} ".format(word))
@@ -107,7 +107,7 @@ class Model:
                     next_candidates = self.chains.get_next(ctx)
                 if not next_candidates or reseed_random:
                     while not next_candidates:
-                        ctx = self.chains.random_ctx(self.ctxLength)
+                        ctx = self.chains.random_ctx(self.ctx_length)
                         next_candidates = self.chains.get_next(ctx)
                 for word in ctx:
                     ofs.write("{} ".format(word))
