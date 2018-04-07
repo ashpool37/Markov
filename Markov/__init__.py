@@ -7,6 +7,7 @@ import string
 import json
 import random
 from collections import defaultdict
+from collections import deque
 
 
 class Model:
@@ -104,9 +105,13 @@ class Model:
         if not start_ctx:
             start_ctx = self.chains.random_ctx()
         ctx = start_ctx
-        for word in ctx:
-            ofs.write(word + ' ')
+        ctx_buffer = deque()
+        ctx_buffer.extend(ctx)
         for wcount in range(length):
+            if ctx_buffer:
+                ofs.write(ctx_buffer.popleft() + ' ')
+                continue
+
             next_candidates = self.chains.get_next(ctx)
             if not next_candidates:
                 if not reseed_random:
@@ -116,8 +121,7 @@ class Model:
                     while not next_candidates:
                         ctx = self.chains.random_ctx()
                         next_candidates = self.chains.get_next(ctx)
-                for word in ctx:
-                    ofs.write(word + ' ')
+                ctx_buffer.extend(ctx)
 
             words = list(next_candidates.keys())
             weights = list(next_candidates.values())
