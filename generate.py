@@ -25,16 +25,16 @@ aparse.add_argument('--help', action="help",
 
 args = aparse.parse_args()
 
-mm = Model.load(args.ifs)
-if args.length < mm.ctxLength + 1:
+markov_model = Model.load(args.ifs)
+if args.length < markov_model.ctxLength + 1:
     print("Please specify a length greater than model's context length.")
     exit(1)
 
 if args.seed is not None:
     args.seed = args.seed.strip().split()
-    if len(args.seed) != mm.ctxLength:
+    if len(args.seed) != markov_model.ctxLength:
         print("Please specify exactly C words in the seed, where C is the "
               "model's context length.")
         exit(1)
 
-mm.generate(args.ofs, args.length, args.seed)
+markov_model.generate(args.ofs, args.length, args.seed)

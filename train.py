@@ -29,17 +29,16 @@ if args.ctx < 1:
     print("Please specify a positive --ctx.")
     exit(1)
 
-mm = Model.empty(ctx_length=args.ctx, lower=args.lc)
+markov_model = Model.empty(ctx_length=args.ctx, lower=args.lc)
 if args.input_dir is not None:
     import os
     for file in os.listdir(args.input_dir):
         if file.endswith(".txt"):
             fpath = os.path.join(args.input_dir, file)
             with open(fpath, 'r', encoding="utf8") as ifs:
-                mm.train(ifs)
+                markov_model.train(ifs)
 else:
-    mm.train(args.input)
+    markov_model.train(args.input)
 
-# mm.finalize()
-mm.dump(args.ofs)
+markov_model.dump(args.ofs)
 args.ofs.close()

@@ -5,13 +5,14 @@ from collections import defaultdict
 
 
 class Model:
-    class Tree:
+    class ChainTree:
         @staticmethod
         def _factory():
-            return defaultdict(Model.Tree._factory)
+            return defaultdict(Model.ChainTree._factory)
 
-        def __init__(self):
-            self.tree = Model.Tree._factory()
+        def __init__(self, ctx_length):
+            self.tree = Model.ChainTree._factory()
+            self.ctx_length = ctx_length
 
         def inc_ctx(self, context):
             subtree = self.tree
@@ -31,41 +32,26 @@ class Model:
                     return None
             return subtree
 
-        def random_ctx(self, length):
+        def random_ctx(self):
             subtree = self.tree
             ctx = []
-            for k in range(length):
+            for k in range(self.ctx_length):
                 next_word = random.choices(list(subtree.keys()))[0]
                 ctx.append(next_word)
                 subtree = subtree[next_word]
             return ctx
 
-        # def traverse(self, depth, tree=None):
-        #     if not tree:
-        #         tree = self.tree
-        #     if depth > 0:
-        #         for key, subtree in tree.items():
-        #             self.traverse(depth - 1, subtree)
-        #         return
-        #     # else we have leaves
-        #     leafsum = 0
-        #     for key, leaf in tree.items():
-        #         leafsum += leaf
-        #     for key in tree.keys():
-        #         tree[key] = round(tree[key] / leafsum, 5)
-
     def __init__(self, ctx_length, lower=True):
-        self.chains = Model.Tree()
-        self.ctx_length = ctx_length
+        self.chains = Model.ChainTree(ctx_length)
         self.lower = lower
 
     @classmethod
     def load(cls, ifs):
         inp = json.load(ifs)
         ctx_length = inp['context']
-        mm = cls(ctx_length)
-        mm.chains.tree = inp['tree']
-        return mm
+        markov_model = cls(ctx_length)
+        markov_model.chains.tree = inp['tree']
+        return markov_model
 
     @classmethod
     def empty(cls, ctx_length, lower=True):
@@ -80,22 +66,19 @@ class Model:
             words = [w.strip(string.punctuation) for w in words]
             for word in words:
                 context.append(word)
-                if len(context) < self.ctx_length + 1:
+                if len(context) < self.chains.ctx_length + 1:
                     continue
                 self.chains.inc_ctx(context)
                 del context[0]
 
-    # def finalize(self):
-    #     self.chains.traverse(self.ctxLength)
-
     def dump(self, ofs):
-        model_dump = {'context': self.ctx_length,
+        model_dump = {'context': self.chains.ctx_length,
                       'tree': self.chains.tree}
         json.dump(model_dump, ofs)
 
     def generate(self, ofs, length, start_ctx=None, reseed_random=True):
         if not start_ctx:
-            start_ctx = self.chains.random_ctx(self.ctx_length)
+            start_ctx = self.chains.random_ctx()
         ctx = start_ctx
         for word in ctx:
             ofs.write("{} ".format(word))
@@ -107,7 +90,7 @@ class Model:
                     next_candidates = self.chains.get_next(ctx)
                 if not next_candidates or reseed_random:
                     while not next_candidates:
-                        ctx = self.chains.random_ctx(self.ctx_length)
+                        ctx = self.chains.random_ctx()
                         next_candidates = self.chains.get_next(ctx)
                 for word in ctx:
                     ofs.write("{} ".format(word))
