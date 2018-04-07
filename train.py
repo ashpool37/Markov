@@ -2,6 +2,7 @@ import argparse
 import sys
 from Markov import Model
 
+
 def main():
     aparse = argparse.ArgumentParser(
         description="Train a Markov model based on text files.",
@@ -9,7 +10,7 @@ def main():
     aparse.add_argument('--ctx', type=int, default=1,
                         help="Length of context (number of words). 1 by "
                              "default.")
-    aparse.add_argument('--input', default=sys.stdin,
+    aparse.add_argument('--input', dest='ifs', default=sys.stdin,
                         type=argparse.FileType('r', encoding='utf8'),
                         help="Path to the input file. If both this and " \
                              "--input-dir are ommitted, read from stdin.")
@@ -40,7 +41,7 @@ def main():
                 with open(fpath, 'r', encoding="utf8") as ifs:
                     markov_model.train(ifs)
     else:
-        markov_model.train(args.input)
+        markov_model.train(args.ifs)
         args.ifs.close()
 
     markov_model.dump(args.ofs)

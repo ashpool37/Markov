@@ -2,6 +2,7 @@ import argparse
 import sys
 from Markov import Model
 
+
 def main():
     aparse = argparse.ArgumentParser(
         description="Use an existing Markov model to generate new text of "
@@ -31,13 +32,13 @@ def main():
     markov_model = Model.load(args.ifs)
     args.ifs.close()
 
-    if args.length < markov_model.ctxLength + 1:
+    if args.length < markov_model.chains.ctx_length + 1:
         print("Please specify a length greater than model's context length.")
         exit(1)
 
     if args.seed is not None:
         args.seed = args.seed.strip().split()
-        if len(args.seed) != markov_model.ctxLength:
+        if len(args.seed) != markov_model.chains.ctx_length:
             print("Please specify exactly C words in the seed, where C is the "
                   "model's context length.")
             exit(1)

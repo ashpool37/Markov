@@ -1,3 +1,8 @@
+"""
+A module for training Markov models, representing them with JSON and using them
+to generate texts.
+"""
+
 import string
 import json
 import random
@@ -5,31 +10,51 @@ from collections import defaultdict
 
 
 class Model:
+    """
+    Representation of a Markov model characterized by an integer context length
+    C >= 1. Training a model on a text means counting the number of occurencies
+    of each contiguous (C+1)-word string found in text. Generating text using
+    a model means printing a given number of words, where for each C contiguous
+    words (a context) the range of words from which to choose the next one and
+    their probabilities of appearing are the same as in the original text used
+    to train the model, yet the choice is randomized. For the sake of memory and
+    disk space preservation, as well as speeding-up training and generating
+    routines, a tree is used to store contexts and their follow-up probabilites,
+    which ensures O(C) context search time.
+    """
     class ChainTree:
+        """
+        Wrapper around the recursive tree data structure used to store
+        contexts and following words probabilities.
+        """
         @staticmethod
-        def _factory():
-            return defaultdict(Model.ChainTree._factory)
+        def factory(*args, **kwargs) -> defaultdict:
+            """
+            Tree factory. Returns a defaultdict whose default values are also
+            defaultdicts, optionally populating it with *args and **kwargs the
+            same way as if they would be passed to dict().
+            """
+            return defaultdict(Model.ChainTree.factory, *args, **kwargs)
 
-        def __init__(self, ctx_length):
-            self.tree = Model.ChainTree._factory()
+        def __init__(self, ctx_length: int):
+            self.tree = Model.ChainTree.factory()
             self.ctx_length = ctx_length
 
-        def inc_ctx(self, context):
-            subtree = self.tree
-            for node in context[:-1]:
-                subtree = subtree[node]
-            fkey = context[-1]
-            if not subtree.get(fkey):
-                subtree[fkey] = 1
-            else:
-                subtree[fkey] += 1
-
-        def get_next(self, context):
+        def inc_count(self, context: list, follower: str):
             subtree = self.tree
             for node in context:
                 subtree = subtree[node]
-                if subtree is None:
-                    return None
+            if not subtree.get(follower):
+                subtree[follower] = 1
+            else:
+                subtree[follower] += 1
+
+        def get_next(self, context: list) -> defaultdict:
+            subtree = self.tree
+            for node in context:
+                subtree = subtree[node]
+                if not subtree:
+                    break
             return subtree
 
         def random_ctx(self):
@@ -47,7 +72,7 @@ class Model:
 
     @classmethod
     def load(cls, ifs):
-        inp = json.load(ifs)
+        inp = json.load(ifs, object_pairs_hook=Model.ChainTree.factory)
         ctx_length = inp['context']
         markov_model = cls(ctx_length)
         markov_model.chains.tree = inp['tree']
@@ -65,11 +90,10 @@ class Model:
             words = line.strip().split()
             words = [w.strip(string.punctuation) for w in words]
             for word in words:
+                if len(context) == self.chains.ctx_length:
+                    self.chains.inc_count(context, word)
+                    del context[0]
                 context.append(word)
-                if len(context) < self.chains.ctx_length + 1:
-                    continue
-                self.chains.inc_ctx(context)
-                del context[0]
 
     def dump(self, ofs):
         model_dump = {'context': self.chains.ctx_length,
