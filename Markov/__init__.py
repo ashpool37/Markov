@@ -105,7 +105,7 @@ class Model:
             start_ctx = self.chains.random_ctx()
         ctx = start_ctx
         for word in ctx:
-            ofs.write("{} ".format(word))
+            ofs.write(word + ' ')
         for wcount in range(length):
             next_candidates = self.chains.get_next(ctx)
             if not next_candidates:
@@ -117,11 +117,11 @@ class Model:
                         ctx = self.chains.random_ctx()
                         next_candidates = self.chains.get_next(ctx)
                 for word in ctx:
-                    ofs.write("{} ".format(word))
+                    ofs.write(word + ' ')
 
             words = list(next_candidates.keys())
             weights = list(next_candidates.values())
             next_word = random.choices(words, weights=weights)[0]
-            ofs.write("{} ".format(next_word))
+            ofs.write(next_word + ' ')
             del ctx[0]
             ctx.append(next_word)
