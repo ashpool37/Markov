@@ -1,3 +1,8 @@
+"""
+Script to train a Markov model to be later used by generate.py for generating
+texts.
+"""
+
 import argparse
 import sys
 from Markov import Model

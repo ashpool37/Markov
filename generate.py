@@ -1,3 +1,8 @@
+"""
+Script to generate a text of given length using an existing Markov model trained
+by train.py.
+"""
+
 import argparse
 import sys
 from Markov import Model
