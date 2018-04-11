@@ -17,7 +17,7 @@ def main():
                              "default.")
     aparse.add_argument('--input', dest='ifs', default=sys.stdin,
                         type=argparse.FileType('r', encoding='utf8'),
-                        help="Path to the input file. If both this and " \
+                        help="Path to the input file. If both this and "
                              "--input-dir are ommitted, read from stdin.")
     aparse.add_argument('--input-dir', default=None,
                         help="Path to the input directory with .txt files.")

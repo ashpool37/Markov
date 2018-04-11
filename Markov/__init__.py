@@ -19,10 +19,10 @@ class Model:
     a model means printing a given number of words, where for each C contiguous
     words (a context) the range of words from which to choose the next one and
     their probabilities of appearing are the same as in the original text used
-    to train the model, yet the choice is randomized. For the sake of memory and
-    disk space preservation, as well as speeding-up training and generating
-    routines, a tree is used to store contexts and their follow-up probabilites,
-    which ensures O(C) context search time.
+    to train the model, yet the choice is randomized. For the sake of memory
+    and disk space preservation, as well as speeding-up training and generating
+    routines, a tree is used to store contexts and their follow-up
+    probabilites, which ensures O(C) context search time.
     """
 
     class ChainTree:
@@ -171,8 +171,8 @@ class Model:
         :param ofs: file object to output text to
         :param length: number of words to output
         :param start_ctx: initial context state, randomly chosen if omitted
-        :param reseed_random: use randomly chosen context for reseeding if true,
-        use start_ctx each time otherwise.
+        :param reseed_random: use randomly chosen context for reseeding if
+        true, use start_ctx each time otherwise.
         """
         if not start_ctx:
             start_ctx = self.chains.random_ctx()
