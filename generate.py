@@ -29,6 +29,9 @@ def main():
                         type=argparse.FileType('w', encoding='utf8'),
                         help="Path to the output file. Print to stdout by "
                              "default.")
+    aparse.add_argument('--width', type=int, default=79,
+                        help="Maximum characters per line (excluding newline)."
+                             "79 by default.")
     aparse.add_argument('--help', action="help",
                         help="Display this help message and exit")
 
@@ -41,6 +44,10 @@ def main():
         print("Please specify a length greater than model's context length.")
         exit(1)
 
+    if args.width < 2:
+        print("Text must be at least 2 characters wide, newline excluded.")
+        exit(1)
+
     if args.seed is not None:
         args.seed = args.seed.strip().split()
         if len(args.seed) != markov_model.chains.ctx_length:
@@ -48,7 +55,7 @@ def main():
                   "model's context length.")
             exit(1)
 
-    markov_model.generate(args.ofs, args.length, args.seed)
+    markov_model.generate(args.ofs, args.length, args.width, args.seed)
     args.ofs.close()
 
 

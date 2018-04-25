@@ -9,6 +9,7 @@ import typing
 import random
 from collections import defaultdict
 from collections import deque
+from .io import WordWriter
 
 
 class Model:
@@ -52,9 +53,9 @@ class Model:
             """
             return defaultdict(Model.ChainTree.factory, *args, **kwargs)
 
-        def __init__(self, ctx_length: int):
+        def __init__(self, ctx_length: int, tree: defaultdict = None):
             """:param ctx_length: context length of the tree """
-            self.tree = Model.ChainTree.factory()
+            self.tree = tree or Model.ChainTree.factory()
             self.ctx_length = ctx_length
 
         def inc_count(self, context: list, follower: str):
@@ -108,7 +109,7 @@ class Model:
         training
         :param tree: a tree to initialize the model with
         """
-        self.chains = tree or Model.ChainTree(ctx_length)
+        self.chains = Model.ChainTree(ctx_length, tree)
         self.lower = lower
 
     @classmethod
@@ -120,7 +121,7 @@ class Model:
         """
         inp = json.load(ifs, object_pairs_hook=Model.ChainTree.factory)
         ctx_length = inp['context']
-        markov_model = cls(ctx_length, inp['tree'])
+        markov_model = cls(ctx_length, tree=inp['tree'])
         return markov_model
 
     @classmethod
@@ -160,8 +161,8 @@ class Model:
                       'tree': self.chains.tree}
         json.dump(model_dump, ofs)
 
-    def generate(self, ofs: typing.TextIO, length: int, start_ctx: list = None,
-                 reseed_random: bool = True):
+    def generate(self, ofs: typing.TextIO, length: int, width: int,
+                 start_ctx: list = None, reseed_random: bool = True):
         """
         Generate a text of the given length and write it to a file object.
         This procedure can sometimes try to search for non-existent context in
@@ -170,10 +171,13 @@ class Model:
         the start_ctx otherwise (which is also chosen randomly if omitted).
         :param ofs: file object to output text to
         :param length: number of words to output
+        :param width: maximum characters per line
         :param start_ctx: initial context state, randomly chosen if omitted
         :param reseed_random: use randomly chosen context for reseeding if
         true, use start_ctx each time otherwise.
         """
+        writer = WordWriter(ofs, width)
+
         if not start_ctx:
             start_ctx = self.chains.random_ctx()
         ctx = start_ctx
@@ -181,7 +185,7 @@ class Model:
         ctx_buffer.extend(ctx)
         for wcount in range(length):
             if ctx_buffer:
-                ofs.write(ctx_buffer.popleft() + ' ')
+                writer.write(ctx_buffer.popleft())
                 continue
 
             next_candidates = self.chains.get_next(ctx)
@@ -198,6 +202,6 @@ class Model:
             words = list(next_candidates.keys())
             weights = list(next_candidates.values())
             next_word = random.choices(words, weights=weights)[0]
-            ofs.write(next_word + ' ')
+            writer.write(next_word)
             del ctx[0]
             ctx.append(next_word)
