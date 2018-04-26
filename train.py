@@ -5,6 +5,7 @@ texts.
 
 import argparse
 import sys
+import os
 from Markov import Model
 
 
@@ -39,7 +40,6 @@ def main():
 
     markov_model = Model.empty(ctx_length=args.ctx, lower=args.lc)
     if args.input_dir is not None:
-        import os
         for file in os.listdir(args.input_dir):
             if file.endswith(".txt"):
                 fpath = os.path.join(args.input_dir, file)
