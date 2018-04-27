@@ -16,7 +16,8 @@ class WordWriter:
         :param ofs: output file object
         :param width: maximum line width
         """
-        self.line = ''
+        self.line = []
+        self.line_len = 0
         self.width = width
         self.ofs = ofs
 
@@ -24,9 +25,20 @@ class WordWriter:
         """
         Internal function to print the current line.
         """
-        self.ofs.write(self.line + '\n')
+        self.ofs.write(' '.join(self.line) + '\n')
         self.ofs.flush()
-        self.line = ''
+        self.line = []
+        self.line_len = 0
+
+    def _push(self, chunk: str):
+        if self.line:
+            self.line_len += 1
+        if self.line_len + len(chunk) > self.width:
+            self._flush()
+        self.line.append(chunk)
+        self.line_len += len(chunk)
+        if self.line_len >= self.width:
+            self._flush()
 
     def write(self, chunk: str):
         """
@@ -35,26 +47,12 @@ class WordWriter:
         :param chunk: the string to be written
         """
         if len(chunk) <= self.width:
-            append_len = len(self.line) + len(chunk) + (1 if self.line else 0)
-            if append_len <= self.width:
-                if self.line:
-                    self.line += ' '
-                self.line += chunk
-            else:
-                self._flush()
-                self.line += chunk
+            self._push(chunk)
         else:  # Very long chunk, gotta break it down!
             written = 0
             while written < len(chunk):
-                append_len = min(self.width, len(chunk) - written)
-                if self.line:
-                    append_len -= (len(self.line) + 1)
-                if append_len < 1:
-                    self._flush()
-                    continue
-                if self.line:
-                    self.line += ' '
-
-                self.line += chunk[written:written + append_len]
-                written += append_len
-                self._flush()
+                chars_left = (self.width - self.line_len -
+                              (1 if self.line else 0))
+                to_write = min(chars_left, len(chunk) - written)
+                self._push(chunk[written:written + to_write])
+                written += to_write
